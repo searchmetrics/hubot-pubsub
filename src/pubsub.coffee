@@ -30,8 +30,8 @@
 
 
 Options =
-  sendEventName:  process.env.HUBOT_PUBSUB_SEND_EVENT_NAME == "true" or not process.env.HUBOT_PUBSUB_SEND_EVENT_NAME?
-  messageObject:  process.env.HUBOT_PUBSUB_MESSAGE_OBJECT == "true" or not process.env.HUBOT_PUBSUB_MESSAGE_OBJECT?
+  sendEventName: process.env.HUBOT_PUBSUB_SEND_EVENT_NAME == "true" or not process.env.HUBOT_PUBSUB_SEND_EVENT_NAME?
+  messageObject: process.env.HUBOT_PUBSUB_MESSAGE_OBJECT == "true" or not process.env.HUBOT_PUBSUB_MESSAGE_OBJECT?
 
 module.exports = (robot) ->
 
@@ -56,6 +56,12 @@ module.exports = (robot) ->
     else
       subs
 
+  messageFormatter = (event, data) ->
+    if Options.messageObject
+      message = data
+    else
+      message = if Options.sendEventName then "#{event}: #{data}" else "#{data}"
+
   notify = (event, data) ->
     count = 0
     subs = subscriptions(event, true)
@@ -64,7 +70,7 @@ module.exports = (robot) ->
         count += 1
         user = {}
         user.room = room
-        message = if Options.sendEventName then "#{event}: #{data}" else "#{data}"
+        message = messageFormatter(event, data)
         robot.send user, message
     unless count > 0
       console.log "hubot-pubsub: unsubscribed.event: #{event}: #{data}"
